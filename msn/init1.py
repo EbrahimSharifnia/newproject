@@ -9,11 +9,11 @@ num_parts = 12
 product_codes = ['FAP' + str(i).zfill(4) for i in range(1, num_products + 1)]
 
 # Generate random demand values for each product
-random_demand = np.random.randint(100, 1000, size=num_products)
+random_demand = np.random.randint(500, 1000, size=num_products)
 
 # Generate random quantities for parts required for each product
 part_columns = ['Part_{}'.format(i+1) for i in range(num_parts)]  # Creates column names for parts
-part_quantities = np.random.randint(0, 7, size=(num_products, num_parts))  # Generates random quantities
+part_quantities = np.random.randint(5, 10, size=(num_products, num_parts))  # Generates random quantities
 
 # Create a DataFrame
 products_df = pd.DataFrame({
@@ -34,7 +34,7 @@ print(products_df)
 parts = ['Part_{}'.format(i+1) for i in range(num_parts)]  # List of parts from Part_1 to Part_10
 
 # Generate random supply values for each part
-random_supply = np.random.randint(500, 1501, size=num_parts)  # Random integers between 500 and 1500
+random_supply = np.random.randint(30000, 40000, size=num_parts)  # Random integers between 500 and 1500
 
 # Create the DataFrame
 parts_supp_df = pd.DataFrame({
@@ -48,7 +48,7 @@ print(parts_supp_df)
 ########################################################
 
 # Generate random priority scores for each product
-priority_scores = np.random.randint(1, 11, size=num_products)  # Random integers between 1 and 10
+priority_scores = np.random.randint(1, 5, size=num_products)  # Random integers between 1 and 10
 
 # Create the DataFrame
 products_priority_df = pd.DataFrame({
@@ -101,49 +101,49 @@ print(products_priority_df)
 
 
 
-def optimize_production(products_df, parts_supp_df, products_priority_df):
-    # Merge data on product codes to bring all relevant data together
-    merged_df = products_df.merge(products_priority_df, on='Product Code')
-    merged_df = merged_df.sort_values('Priority Score', ascending=False)
+# def optimize_production(products_df, parts_supp_df, products_priority_df):
+#     # Merge data on product codes to bring all relevant data together
+#     merged_df = products_df.merge(products_priority_df, on='Product Code')
+#     merged_df = merged_df.sort_values('Priority Score', ascending=False)
 
-    # Create a dictionary from the parts supply DataFrame for easy access
-    parts_supply = parts_supp_df.set_index('Part_Num')['Supply'].to_dict()
+#     # Create a dictionary from the parts supply DataFrame for easy access
+#     parts_supply = parts_supp_df.set_index('Part_Num')['Supply'].to_dict()
 
-    # Prepare the output DataFrame
-    output_data = []
+#     # Prepare the output DataFrame
+#     output_data = []
 
-    # Calculate the maximum number of each product that can be assembled
-    for _, row in merged_df.iterrows():
-        product_code = row['Product Code']
-        demand = row['Demand']
-        min_possible = demand  # Start with the demand as the maximum possible
+#     # Calculate the maximum number of each product that can be assembled
+#     for _, row in merged_df.iterrows():
+#         product_code = row['Product Code']
+#         demand = row['Demand']
+#         min_possible = demand  # Start with the demand as the maximum possible
 
-        # Check for each part
-        for part, required in row.iteritems():
-            if part.startswith('Part_') and required > 0:
-                if part in parts_supply and parts_supply[part] > 0:
-                    # Calculate the maximum number of this product that can be made with the available parts
-                    max_product_from_part = parts_supply[part] // required
-                    min_possible = min(min_possible, max_product_from_part)
+#         # Check for each part
+#         for part, required in row.iteritems():
+#             if part.startswith('Part_') and required > 0:
+#                 if part in parts_supply and parts_supply[part] > 0:
+#                     # Calculate the maximum number of this product that can be made with the available parts
+#                     max_product_from_part = parts_supply[part] // required
+#                     min_possible = min(min_possible, max_product_from_part)
 
-        # Deduct the used parts from the parts supply
-        if min_possible > 0:
-            for part, required in row.iteritems():
-                if part.startswith('Part_') and required > 0 and part in parts_supply:
-                    parts_supply[part] -= required * min_possible
+#         # Deduct the used parts from the parts supply
+#         if min_possible > 0:
+#             for part, required in row.iteritems():
+#                 if part.startswith('Part_') and required > 0 and part in parts_supply:
+#                     parts_supply[part] -= required * min_possible
 
-        # Append results to the output list
-        output_data.append({'Product Code': product_code, 'Optimized Production': min_possible})
+#         # Append results to the output list
+#         output_data.append({'Product Code': product_code, 'Optimized Production': min_possible})
 
-    # Create the output DataFrame from the list
-    output_df = pd.DataFrame(output_data)
+#     # Create the output DataFrame from the list
+#     output_df = pd.DataFrame(output_data)
 
-    return output_df
+#     return output_df
 
 
-# Example function call
-optimized_df = optimize_production(products_df, parts_supp_df, products_priority_df)
-print(optimized_df)
+# # Example function call
+# optimized_df = optimize_production(products_df, parts_supp_df, products_priority_df)
+# print(optimized_df)
 
 # # Example DataFrames (these need to be properly populated as per your actual data schema)
 # products_df = pd.DataFrame({
@@ -220,3 +220,21 @@ def optimize_production(products_df, parts_supp_df, products_priority_df):
 optimized_df = optimize_production(products_df, parts_supp_df, products_priority_df)
 print(optimized_df)
 
+import openpyxl
+import os
+import pandas as pd
+
+# Assuming 'optimized_df' is your DataFrame
+
+# Specify the directory name where you want to save the file
+directory = 'msn'
+
+# Check if the directory exists, and if not, create it
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+# Specify the path to the Excel file
+file_path = os.path.join(directory, 'optimized_production.xlsx')
+
+# Save the DataFrame to an Excel file
+optimized_df.to_excel(file_path, index=False, engine='openpyxl')
