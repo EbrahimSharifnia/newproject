@@ -54,3 +54,29 @@ for i, part in enumerate(part_columns):
 
 # Print the DataFrame
 print(df)
+
+# Rename df to products_df
+products_df = df
+
+# Print the products_df DataFrame
+print(products_df)
+
+#########################################################
+
+import pandas as pd
+import numpy as np
+
+# Define the parts
+parts = ['Part_{}'.format(i+1) for i in range(10)]  # List of parts from Part_1 to Part_10
+
+# Generate random supply values for each part
+random_supply = np.random.randint(500, 1501, size=10)  # Random integers between 500 and 1500
+
+# Create the DataFrame
+parts_supp_df = pd.DataFrame({
+    'Part_Num': parts,
+    'Supply': random_supply
+})
+
+# Print the DataFrame
+print(parts_supp_df)
