@@ -1,5 +1,3 @@
-write a function that inputs "product_df" and "parts_supp_df" and returns a table with calculated 
-
 ######
 
 Lets call final assembled products "FAP"s. Write a function that inputs data frames "products_df", "parts_supp_df", 
