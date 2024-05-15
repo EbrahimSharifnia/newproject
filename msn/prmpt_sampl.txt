@@ -1,0 +1,14 @@
+write a function that inputs "product_df" and "parts_supp_df" and returns a table with calculated 
+
+######
+
+Lets call final assembled products "FAP"s. Write a function that inputs data frames "products_df", "parts_supp_df", 
+"products_priority_df" and 
+returns a dataframe with first column are FAPs. 
+The second column is the calculated number of assembled products in the most optimized fashion. 
+These optimized number of produced final products must be calculated via an allocation solution based on the 
+data about the FAP demands and 
+number and types of parts each FAP
+consist of, from "products_df", and the data about supllied number of parts, from "parts_supp_df", and the data on 
+proirity of allocation of parts to FAPs based on the values from "products_priority_df" in  "Priority Score" column. 
+Note that the priority scores of FAPs indicates the urgency level to fullfill demands for each FAP.
