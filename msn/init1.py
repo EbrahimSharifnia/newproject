@@ -6,7 +6,7 @@ num_products = 10
 num_parts = 12
 
 # Generate unique product codes
-product_codes = ['P' + str(i).zfill(4) for i in range(1, num_products + 1)]
+product_codes = ['FAP' + str(i).zfill(4) for i in range(1, num_products + 1)]
 
 # Generate random demand values for each product
 random_demand = np.random.randint(100, 1000, size=num_products)
@@ -46,12 +46,6 @@ parts_supp_df = pd.DataFrame({
 print(parts_supp_df)
 
 ########################################################
-
-import pandas as pd
-import numpy as np
-
-# Define the number of final assembled products
-num_products = 10
 
 # Generate unique final assembled product codes
 product_codes = ['FAP' + str(i).zfill(4) for i in range(1, num_products + 1)]
