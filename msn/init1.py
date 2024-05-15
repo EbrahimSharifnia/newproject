@@ -47,9 +47,6 @@ print(parts_supp_df)
 
 ########################################################
 
-# Generate unique final assembled product codes
-product_codes = ['FAP' + str(i).zfill(4) for i in range(1, num_products + 1)]
-
 # Generate random priority scores for each product
 priority_scores = np.random.randint(1, 11, size=num_products)  # Random integers between 1 and 10
 
@@ -64,7 +61,45 @@ print(products_priority_df)
 
 #################################################
 
-import pandas as pd
+# def optimize_production(products_df, parts_supp_df, products_priority_df):
+#     # Merge data on product codes to bring all relevant data together
+#     merged_df = products_df.merge(products_priority_df, on='Product Code')
+#     merged_df = merged_df.sort_values('Priority Score', ascending=False)
+
+#     # Create a dictionary from the parts supply DataFrame for easy access
+#     parts_supply = parts_supp_df.set_index('Part_Num')['Supply'].to_dict()
+
+#     # Prepare the output DataFrame
+#     output_df = pd.DataFrame(columns=['Product Code', 'Optimized Production'])
+
+#     # Calculate the maximum number of each product that can be assembled
+#     for _, row in merged_df.iterrows():
+#         product_code = row['Product Code']
+#         demand = row['Demand']
+#         min_possible = demand  # Start with the demand as the maximum possible
+
+#         # Check for each part
+#         for part in parts_supply.keys():
+#             if part in row and parts_supply[part] > 0:
+#                 required = row[part]
+#                 if required > 0:
+#                     # Calculate the maximum number of this product that can be made with the available parts
+#                     max_product_from_part = parts_supply[part] // required
+#                     min_possible = min(min_possible, max_product_from_part)
+        
+#         # Deduct the used parts from the parts supply
+#         for part in parts_supply.keys():
+#             if part in row and parts_supply[part] > 0:
+#                 required = row[part]
+#                 if required > 0:
+#                     parts_supply[part] -= required * min_possible
+
+#         # Append to the output DataFrame
+#         output_df = output_df.append({'Product Code': product_code, 'Optimized Production': min_possible}, ignore_index=True)
+
+#     return output_df
+
+
 
 def optimize_production(products_df, parts_supp_df, products_priority_df):
     # Merge data on product codes to bring all relevant data together
@@ -75,7 +110,7 @@ def optimize_production(products_df, parts_supp_df, products_priority_df):
     parts_supply = parts_supp_df.set_index('Part_Num')['Supply'].to_dict()
 
     # Prepare the output DataFrame
-    output_df = pd.DataFrame(columns=['Product Code', 'Optimized Production'])
+    output_data = []
 
     # Calculate the maximum number of each product that can be assembled
     for _, row in merged_df.iterrows():
@@ -84,28 +119,30 @@ def optimize_production(products_df, parts_supp_df, products_priority_df):
         min_possible = demand  # Start with the demand as the maximum possible
 
         # Check for each part
-        for part in parts_supply.keys():
-            if part in row and parts_supply[part] > 0:
-                required = row[part]
-                if required > 0:
+        for part, required in row.iteritems():
+            if part.startswith('Part_') and required > 0:
+                if part in parts_supply and parts_supply[part] > 0:
                     # Calculate the maximum number of this product that can be made with the available parts
                     max_product_from_part = parts_supply[part] // required
                     min_possible = min(min_possible, max_product_from_part)
-        
+
         # Deduct the used parts from the parts supply
-        for part in parts_supply.keys():
-            if part in row and parts_supply[part] > 0:
-                required = row[part]
-                if required > 0:
+        if min_possible > 0:
+            for part, required in row.iteritems():
+                if part.startswith('Part_') and required > 0 and part in parts_supply:
                     parts_supply[part] -= required * min_possible
 
-        # Append to the output DataFrame
-        output_df = output_df.append({'Product Code': product_code, 'Optimized Production': min_possible}, ignore_index=True)
+        # Append results to the output list
+        output_data.append({'Product Code': product_code, 'Optimized Production': min_possible})
+
+    # Create the output DataFrame from the list
+    output_df = pd.DataFrame(output_data)
 
     return output_df
 
+
 # Example function call
-optimized_df = optimize_production(products_df=products_df, parts_supp_df=parts_supp_df, products_priority_df=products_priority_df)
+optimized_df = optimize_production(products_df, parts_supp_df, products_priority_df)
 print(optimized_df)
 
 # # Example DataFrames (these need to be properly populated as per your actual data schema)
@@ -126,6 +163,60 @@ print(optimized_df)
 #     'Priority Score': [10, 20]
 # })
 
+import pandas as pd
+
+def optimize_production(products_df, parts_supp_df, products_priority_df):
+    # Merge data on product codes to bring all relevant data together
+    merged_df = products_df.merge(products_priority_df, on='Product Code')
+    merged_df = merged_df.sort_values('Priority Score', ascending=False)
+
+    # Create a dictionary from the parts supply DataFrame for easy access
+    parts_supply = parts_supp_df.set_index('Part_Num')['Supply'].to_dict()
+
+    # Prepare the output list
+    output_data = []
+
+    # Calculate the maximum number of each product that can be assembled
+    for _, row in merged_df.iterrows():
+        product_code = row['Product Code']
+        demand = row['Demand']
+        min_possible = demand  # Start with the demand as the maximum possible
+
+        # Check for each part and calculate minimum production possible based on part availability
+        for part, supply in parts_supply.items():
+            if part in row.index and row[part] > 0:
+                max_product_from_part = supply // row[part]
+                min_possible = min(min_possible, max_product_from_part)
+        
+        # Deduct the used parts from the parts supply and update for each part
+        if min_possible > 0:
+            for part, required in row.iteritems():
+                if part in parts_supply and required > 0:
+                    parts_supply[part] -= required * min_possible
+
+        # Calculate backorder
+        backorder = demand - min_possible
+
+        # Collect the production data, remaining parts, and backorder
+        product_data = {
+            'Product Code': product_code,
+            'Optimized Production': min_possible,
+            'Backorder': backorder
+        }
+
+        # Append remaining parts supply for each part
+        for part, remaining in parts_supply.items():
+            product_data[part + ' Remaining'] = remaining
+
+        # Append results to the output list
+        output_data.append(product_data)
+
+    # Create the output DataFrame from the list
+    output_df = pd.DataFrame(output_data)
+
+    return output_df
+
 # Example function call
 optimized_df = optimize_production(products_df, parts_supp_df, products_priority_df)
 print(optimized_df)
+
