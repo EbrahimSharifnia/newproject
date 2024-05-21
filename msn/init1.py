@@ -28,6 +28,8 @@ for i, part in enumerate(part_columns):
 # Print the products_df DataFrame
 print(products_df)
 
+products_df.to_csv('products_df.csv', index=False)
+
 #########################################################
 
 # Define the parts
@@ -45,6 +47,8 @@ parts_supp_df = pd.DataFrame({
 # Print the DataFrame
 print(parts_supp_df)
 
+parts_supp_df.to_csv('parts_supp_df.csv', index=False)
+
 ########################################################
 
 # Generate random priority scores for each product
@@ -59,6 +63,7 @@ products_priority_df = pd.DataFrame({
 # Print the DataFrame
 print(products_priority_df)
 
+products_priority_df.to_csv('products_priority_df.csv', index=False)
 #################################################
 
 # def optimize_production(products_df, parts_supp_df, products_priority_df):
